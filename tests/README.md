@@ -55,6 +55,34 @@ After every run, see `tests/reports/<timestamp>/report.html` for the
 visual diff — source / previous baseline / current side-by-side, plus
 per-pixel heatmaps and top-3 worst regions with heuristic cause guesses.
 
+### Unit tests (no models, no LibreOffice)
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+These cover erase/inventory/layout/pptx heuristics only and run in
+well under a second.
+
+### Partial runs on a network-restricted machine
+
+The full regression run needs PP-OCRv5 weights (downloaded from the
+Paddle model zoo / Hugging Face on first use) and LibreOffice +
+Poppler for the preview render. If model hosts are unreachable but
+PyPI is not, `tests/tools/ocr_rapid.py` produces the same
+`ocr/page_NN.ocr.json` shape from `rapidocr-onnxruntime` (PP-OCRv4
+ONNX models ship inside the wheel — no download):
+
+```bash
+python tests/tools/ocr_rapid.py --source-dir <run>/source --work-dir <run>
+python scripts/build_deck.py --source-dir <run>/source --work-dir <run> \
+    --skip-render --skip-calibration
+```
+
+`--skip-render` means no previews, so the runner's visual metrics are
+unavailable; structural / text / counts scoring still works if you
+call `tests.runner.metrics` directly.
+
 ## Metrics
 
 | Category | Metrics |
